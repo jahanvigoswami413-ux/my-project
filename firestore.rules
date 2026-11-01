@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Admin = anyone who has a document in the "admins" collection (created by hand in the console).
+    function isAdmin() {
+      return request.auth != null &&
+             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function me() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function approved() {
+      return request.auth != null &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             me().status == 'approved';
+    }
+
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;               // add admins only from the Firebase console
+    }
+
+    match /users/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      // A new account can only be created as "pending" with no role or data scope.
+      allow create: if request.auth != null && request.auth.uid == uid &&
+                       request.resource.data.status == 'pending' &&
+                       request.resource.data.role == '' &&
+                       request.resource.data.scopeDim == '';
+      allow update, delete: if isAdmin();  // only the admin approves, rejects or changes roles
+    }
+
+    match /customers/{id} {
+      allow read: if isAdmin() ||
+                     (approved() && (
+                        me().scopeDim == '' ||
+                        (me().scopeDim == 'contract' && resource.data.contract == me().scopeVal) ||
+                        (me().scopeDim == 'internet' && resource.data.internet == me().scopeVal)));
+      allow write: if isAdmin();
+    }
+  }
+}

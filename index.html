@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RetainIQ – Customer Churn Analysis</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f5f6fa;--card:#fff;--tx:#1b1f2a;--mu:#6b7385;--bd:#e3e6ee;--ac:#4f46e5;--rd:#e5484d;--gn:#2ca66f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12141b;--card:#1b1e28;--tx:#e8eaf1;--mu:#98a0b3;--bd:#2c3040;--ac:#8b85ff;--rd:#ff6b70;--gn:#4cc38a}}
+:root[data-theme="dark"]{--bg:#12141b;--card:#1b1e28;--tx:#e8eaf1;--mu:#98a0b3;--bd:#2c3040;--ac:#8b85ff;--rd:#ff6b70;--gn:#4cc38a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+aside{background:var(--card);border-right:1px solid var(--bd);padding:20px 18px}
+.logo{font-size:22px;font-weight:700;margin-bottom:4px}.logo span{color:var(--ac)}
+.sub{color:var(--mu);font-size:12px;margin-bottom:16px}
+nav{display:flex;flex-direction:column;gap:3px;margin-bottom:18px}
+nav button{padding:9px 12px;border:0;background:none;color:var(--tx);border-radius:8px;cursor:pointer;font:inherit;text-align:left}nav button:hover{background:var(--bg)}
+nav button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+h4{margin:16px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mu)}
+label.c{display:flex;gap:8px;align-items:center;padding:2px 0;cursor:pointer}
+.rng{display:flex;gap:8px}.rng input{width:100%;padding:6px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--tx)}
+.btn{padding:8px 12px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;cursor:pointer;font:inherit;margin-top:10px;width:100%}
+.btn.p{background:var(--ac);color:#fff;border-color:var(--ac);width:auto;margin:0}
+main{padding:22px;min-width:0}
+h2{margin:0 0 4px}.note{color:var(--mu);font-size:13px;margin-bottom:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px}
+.kpi .l{color:var(--mu);font-size:12px}.kpi .v{font-size:26px;font-weight:700;margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:14px}
+.card h3{margin:0 0 10px;font-size:15px}
+.cv{position:relative;height:240px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}
+th{color:var(--mu);font-weight:600}td.n,th.n{text-align:right}
+textarea,select{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:13px ui-monospace,Menlo,Consolas,monospace}
+.err{color:var(--rd);margin-top:8px;font-size:13px}.hide{display:none!important}
+.row{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
+@media(max-width:800px){.app{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--bd)}}
+.top{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;border-bottom:1px solid var(--bd);background:var(--card)}
+.top .btn{margin:0}
+.hero{max-width:880px;margin:0 auto;padding:64px 24px 28px;text-align:center}
+.hero h1{font-size:clamp(30px,5vw,48px);line-height:1.1;margin:0 0 14px}.hero h1 span{color:var(--ac)}
+.hero p{color:var(--mu);font-size:17px;max-width:620px;margin:0 auto 24px}
+.hero .btn.p{padding:12px 22px;font-size:16px}
+.feats{max-width:980px;margin:0 auto;padding:20px 24px 56px;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.feats .card h3{margin-bottom:6px}.feats .card p{margin:0;color:var(--mu);font-size:14px}
+.lg{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.lg .card{width:100%;max-width:380px;padding:26px}
+.lg input{width:100%;padding:10px;margin:4px 0 12px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+.lg .btn.p{width:100%;padding:11px}
+.lk{background:none;border:0;color:var(--mu);cursor:pointer;font:inherit;margin-top:12px;width:100%}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}.fg label{font-size:12px;color:var(--mu);display:block;margin-bottom:3px}
+.fg input,.fg select{width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+.bd{padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;color:#fff;white-space:nowrap}.bd.Low{background:var(--gn)}.bd.Medium{background:#c98a1e}.bd.High{background:var(--rd)}
+.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%}
+th[data-k]{cursor:pointer;user-select:none}
+aside{position:sticky;top:0;height:100vh;overflow-y:auto}
+.card{box-shadow:0 1px 2px rgba(0,0,0,.04)}
+input[type=range]{accent-color:var(--ac);width:100%}
+@media(max-width:800px){aside{position:static;height:auto}nav{flex-direction:row;flex-wrap:wrap}}
+.card p,.card li{font-size:14px}.card ul,.card ol{margin:0;padding-left:18px}.card li{margin-bottom:5px}.card p{margin:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:22px}.chips span{border:1px solid var(--bd);background:var(--card);padding:4px 12px;border-radius:99px;font-size:12px;color:var(--mu)}
+.cm{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;align-items:center;max-width:440px}.cmc{padding:14px 8px;border-radius:8px;text-align:center;font-weight:600}
+.sec{margin:22px 0 10px;font-size:17px}
+.ur{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;padding:10px 0;border-bottom:1px solid var(--bd)}
+.ur select,td select{width:auto;padding:6px;margin-right:4px}
+.lg .card{max-height:96vh;overflow-y:auto}
+#dlg{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center}
+#dlg label{display:block;font-size:12px;color:var(--mu);margin:12px 0 4px}#dlg select{width:100%}
+</style>
+</head>
+<body>
+<div id="home">
+  <div class="top"><div class="logo">Retain<span>IQ</span></div><button class="btn p" id="hSign">Sign in</button></div>
+  <div class="hero">
+    <h1>Know who’s leaving, <span>before they go.</span></h1>
+    <p>RetainIQ turns customer data into clear churn insights: see churn rate, revenue at risk and the segments that need attention.</p>
+    <button class="btn p" id="hStart">Get started</button>
+    <div class="chips"><span>Runs in the browser</span><span>Logistic regression model</span><span>Chart.js charts</span><span>Safe SQL queries</span><span>CSV and PDF export</span><span>Sample company: DemoTel Communications</span></div>
+  </div>
+  <h2 style="text-align:center;margin:18px 0 0">How it works</h2>
+  <div class="feats" style="padding-bottom:0">
+    <div class="card"><h3>1. Load data</h3><p>Use the built-in sample or upload your own customer CSV.</p></div>
+    <div class="card"><h3>2. Analyse</h3><p>See who leaves, which segments are worst and how much revenue is lost.</p></div>
+    <div class="card"><h3>3. Predict</h3><p>A model scores every customer and a what-if tool tests ideas.</p></div>
+    <div class="card"><h3>4. Act</h3><p>Get recommendations, savings estimates and a report to share.</p></div>
+  </div>
+  <div class="feats">
+    <div class="card"><h3>Live dashboard</h3><p>Total customers, churned, churn rate, average monthly charges and revenue at risk at a glance.</p></div>
+    <div class="card"><h3>Smart filters</h3><p>Slice by contract, internet service, gender and tenure range. Every view updates instantly.</p></div>
+    <div class="card"><h3>Deep analysis</h3><p>Result tables, charts and a safe SELECT-only SQL box for your own questions.</p></div>
+  </div>
+</div>
+<div id="login" class="lg hide">
+  <div class="card">
+    <div class="logo">Retain<span>IQ</span></div>
+    <div class="sub" id="lt">Sign in to your workspace</div>
+    <label for="lm">Email</label><input id="lm" type="email" autocomplete="email" placeholder="name@gmail.com">
+    <label for="lpw">Password</label><input id="lpw" type="password" autocomplete="current-password" placeholder="At least 6 characters">
+    <div id="rq" class="hide">
+      <label for="rn">Full name</label><input id="rn" type="text" autocomplete="name">
+      <label for="rp">Position</label><select id="rp" style="margin:4px 0 12px"><option>General Manager (GM)</option><option>Senior Manager</option><option>Manager</option><option>Sales Manager</option><option>Marketing Manager</option><option>Customer Support Head</option><option>Executive / CEO</option><option>Team Lead</option><option>Analyst</option><option>Other</option></select>
+      <label for="rd">Department or domain you work in</label><input id="rd" type="text" placeholder="e.g. Fiber sales, Retention team">
+      <label for="rtn">Note to the admin (optional)</label><input id="rtn" type="text">
+    </div>
+    <button class="btn p" id="lBtn">Sign in</button>
+    <div class="err" id="le"></div>
+    <button class="lk" id="lMode">New here? Create an account</button>
+    <div class="sub" style="margin:12px 0 0">Demo accounts are saved in this browser. Create an account with any test email, then sign in as the admin to approve it, then sign in again as that person. The admin signs in with the admin email and the admin password set in the code. You do not need anyone’s real email.</div>
+    <button class="lk" id="lBack">← Back to home</button>
+  </div>
+</div>
+<div id="dlg" class="hide"><div class="card" style="max-width:420px;width:92%">
+  <h3 id="dT">Approve access</h3><div class="note" id="dW"></div>
+  <label for="dP">Position</label><select id="dP"></select>
+  <select id="dR" class="hide"></select><div class="note" id="dRn" style="margin-top:8px"></div>
+  <label for="dD">Data domain (what this person can see)</label>
+  <div class="row" style="margin:0"><select id="dD" style="flex:1"></select><select id="dV" style="flex:1"></select></div>
+  <div class="row" style="margin-top:16px"><button class="btn p" id="dOk">Confirm</button><button class="btn" id="dNo" style="width:auto;margin:0">Cancel</button></div>
+</div></div>
+<div class="app hide" id="app">
+<aside>
+  <div class="logo">Retain<span>IQ</span></div>
+  <div class="sub">Customer churn analytics</div>
+  <div class="sub" style="margin:-10px 0 14px"><b>DemoTel Communications</b><br>Sample company data</div>
+  <select id="viewAs" class="hide" style="margin-bottom:12px"></select>
+  <nav><button id="nW" class="on">My workspace</button><button id="nD">Dashboard</button><button id="nA">Analysis</button><button id="nP">Predict</button><button id="nI">Revenue impact</button><button id="nR">Recommendations</button><button id="nX">Export report</button><button id="nM">About &amp; model</button><button id="nU">Users &amp; access</button></nav>
+  <h4>Contract</h4><div id="fContract"></div>
+  <h4>Internet service</h4><div id="fInternet"></div>
+  <h4>Gender</h4><div id="fGender"></div>
+  <h4>Tenure (months)</h4>
+  <div class="rng"><input id="tMin" type="number" min="0" value="0"><input id="tMax" type="number" min="0" value="72"></div>
+  <button class="btn" id="reset">Reset filters</button>
+  <h4>Data</h4>
+  <input id="file" type="file" accept=".csv" class="hide">
+  <button class="btn" id="up">Upload your CSV</button>
+  <div class="sub" style="margin-top:6px" id="src"></div>
+  <button class="btn" id="theme">Switch light / dark</button>
+  <button class="btn" id="toHome">Home</button>
+  <div class="sub" id="usr" style="margin-top:12px"></div>
+  <button class="btn" id="out">Sign out</button>
+</aside>
+<main>
+  <section id="pW" class="hide">
+    <h2 id="wH">My workspace</h2><div class="note" id="wN"></div>
+    <div class="kpis" id="wK"></div>
+    <div class="card" style="margin-bottom:14px"><h3>Your priorities</h3><ul id="wF"></ul></div>
+    <div class="grid" id="wG"></div>
+    <div class="card"><h3 id="wTT"></h3><div class="tw" id="wTB"></div></div>
+  </section>
+  <section id="pD">
+    <h2>Dashboard · DemoTel Communications</h2><div class="note" id="dn"></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="card" style="margin-bottom:14px"><h3>Key insights</h3><ul id="ki"></ul></div>
+    <div class="grid">
+      <div class="card"><h3>Churned vs retained</h3><div class="cv"><canvas id="c1"></canvas></div></div>
+      <div class="card"><h3>Churn rate by contract</h3><div class="cv"><canvas id="c2"></canvas></div></div>
+      <div class="card"><h3>Churn rate by tenure</h3><div class="cv"><canvas id="c3"></canvas></div></div>
+    </div>
+  </section>
+  <section id="pP" class="hide">
+    <h2>Churn prediction</h2><div class="note" id="mn"></div>
+    <div class="grid">
+      <div class="card"><h3>Single customer</h3>
+        <div class="fg">
+          <div><label for="fG">Gender</label><select id="fG"></select></div>
+          <div><label for="fT">Tenure (months)</label><input id="fT" type="number" min="0" max="120" value="12"></div>
+          <div><label for="fC">Contract</label><select id="fC"></select></div>
+          <div><label for="fI">Internet service</label><select id="fI"></select></div>
+          <div><label for="fM">Monthly charges ($)</label><input id="fM" type="number" min="0" step="0.01" value="70"></div>
+        </div>
+        <button class="btn p" id="pBtn" style="margin-top:12px">Predict churn</button>
+        <div id="pOut"></div>
+      </div>
+      <div class="card"><h3>Bulk prediction</h3>
+        <div class="note">Upload a CSV with columns: customerID, gender, tenure, Contract, InternetService, MonthlyCharges.</div>
+        <input id="bFile" type="file" accept=".csv" class="hide"><button class="btn p" id="bUp">Upload CSV</button>
+        <div id="bOut"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:14px"><h3>What-if simulator</h3>
+      <div class="note">Start from the customer in the form above, then move the sliders to see how churn probability changes.</div>
+      <div class="row" style="margin:0 0 12px"><button class="btn" id="wLoad" style="width:auto;margin:0">Use customer from form above</button><button class="btn" id="wReset" style="width:auto;margin:0">Reset to baseline</button></div>
+      <div class="fg">
+        <div><label for="wT">Tenure: <b id="wTv"></b> months</label><input id="wT" type="range" min="0" max="72" value="12"></div>
+        <div><label for="wM">Monthly charges: <b id="wMv"></b></label><input id="wM" type="range" min="0" max="130" value="70"></div>
+        <div><label for="wC">Contract</label><select id="wC"></select></div>
+        <div><label for="wI">Internet service</label><select id="wI"></select></div>
+      </div>
+      <div id="wOut"></div>
+    </div>
+    <div class="card"><h3>Top 50 high-risk customers</h3><div class="note">Active (not yet churned) customers with the highest predicted churn probability, following the sidebar filters. Click a column to sort.</div><div class="tw" id="hr"></div></div>
+  </section>
+  <section id="pA" class="hide">
+    <h2>Analysis</h2><div class="note">Tables and charts follow the sidebar filters. Revenue at risk = monthly charges of churned customers.</div>
+    <div id="dims"></div>
+    <div class="card">
+      <h3>Custom SQL query</h3>
+      <div class="note">Read-only: a single SELECT on table <code>customers</code> (all rows, ignores sidebar filters). Columns: id, gender, tenure, contract, internet, monthly_charges, total_charges, churn.</div>
+      <select id="preset"></select>
+      <textarea id="sql" rows="4" style="margin-top:8px"></textarea>
+      <div class="row"><button class="btn p" id="run">Run query</button><span class="note" id="qm" style="margin:0"></span></div>
+      <div class="err" id="qe"></div>
+      <div class="tw" id="qr" style="margin-top:10px"></div>
+    </div>
+  </section>
+<section id="pI" class="hide">
+    <h2>Revenue impact calculator</h2><div class="note">Estimate the savings if you cut churn. Based on the customers matching the sidebar filters.</div>
+    <div class="card" style="margin-bottom:14px">
+      <label for="xr"><b>Churn reduction: <span id="xv">10</span>%</b> <span class="note">(relative cut in churned customers)</span></label>
+      <input id="xr" type="range" min="1" max="50" value="10">
+      <div class="fg" style="margin-top:10px"><div><label for="xc">Retention program cost per year ($)</label><input id="xc" type="number" min="0" value="0"></div></div>
+    </div>
+    <div class="kpis" id="xk"></div>
+    <div class="card"><h3>Scenarios</h3><div class="tw" id="xs"></div></div>
+  </section>
+  <section id="pR" class="hide">
+    <h2>Business recommendations</h2><div class="note">Generated from the customers matching the current filters. Savings assume a 20% churn reduction in each segment.</div>
+    <div id="rc"></div>
+  </section>
+  <section id="pX" class="hide">
+    <h2>Export report</h2><div class="note">Download the current view (filters, KPIs, revenue impact, segments and recommendations).</div>
+    <div class="card" style="margin-bottom:14px"><div class="row" style="margin:0"><button class="btn p" id="xCsv">Download CSV</button><button class="btn p" id="xPdf">Download PDF</button></div><div class="err" id="xErr"></div></div>
+    <div class="card"><h3>Report preview</h3><div class="tw" id="xp"></div></div>
+  </section>
+<section id="pM" class="hide">
+    <h2>About &amp; model</h2><div class="note">What this project does, how the prediction model works and how well it performs.</div>
+    <div class="grid">
+      <div class="card"><h3>The problem</h3><p>Customer churn means customers stop using a service. For a telecom company every lost customer is lost income, and winning a new customer costs far more than keeping one. RetainIQ shows who is likely to leave, why, and how much revenue is at stake, so the business can act early.</p></div>
+      <div class="card"><h3>Objectives</h3><ul><li>Measure churn: customers, churn rate, average bill, revenue at risk.</li><li>Find which customer groups leave the most.</li><li>Predict the churn probability of any customer.</li><li>Estimate the money saved if churn falls.</li><li>Recommend actions and export a report.</li></ul></div>
+      <div class="card"><h3>How it works</h3><ol><li><b>Data:</b> each customer has gender, tenure, contract, internet service and monthly charges, plus whether they left.</li><li><b>Analysis:</b> filters, charts and tables compare groups.</li><li><b>Model:</b> logistic regression turns the five fields into a churn probability.</li><li><b>Action:</b> risk levels, what-if tests and recommendations.</li></ol></div>
+    </div>
+    <h3 class="sec">Model performance</h3>
+    <div class="note" id="mt"></div>
+    <div class="kpis" id="mk"></div>
+    <div class="grid">
+      <div class="card"><h3>Confusion matrix</h3><div id="cm"></div><div class="note" style="margin-top:10px">Counts for customers the model had never seen. Green cells are correct predictions, red cells are mistakes.</div></div>
+      <div class="card"><h3>What drives churn?</h3><div class="cv" style="height:300px"><canvas id="m1"></canvas></div><div class="note" id="mt2" style="margin-top:8px"></div></div>
+    </div>
+    <div class="grid">
+      <div class="card"><h3>Glossary</h3><ul>
+        <li><b>Churn rate:</b> share of customers who left.</li>
+        <li><b>Revenue at risk:</b> monthly charges of the customers who left.</li>
+        <li><b>Churn probability:</b> the model’s estimate (0–100%) that a customer will leave.</li>
+        <li><b>Risk level:</b> Low under 30%, Medium 30–60%, High 60% or more.</li>
+        <li><b>Precision:</b> of the customers flagged as leavers, how many really left.</li>
+        <li><b>Recall:</b> of the customers who really left, how many the model caught.</li>
+        <li><b>ROC AUC:</b> how well the model ranks leavers above stayers (0.5 = guessing, 1 = perfect).</li>
+      </ul></div>
+      <div class="card"><h3>Limitations and tools</h3><ul>
+        <li>The sample data is synthetic. Upload a real CSV (for example the Telco churn dataset) for real results.</li>
+        <li>The model uses only five fields, so it is a first estimate, not a final decision.</li>
+        <li>It shows what is linked to churn, not proof of what causes it.</li>
+        <li>Built with HTML, JavaScript, Chart.js, AlaSQL and jsPDF. The model is trained in the browser on an 80/20 train/test split.</li>
+      </ul></div>
+    </div>
+  </section>
+<section id="pU" class="hide">
+    <h2>Users &amp; access</h2><div class="note">Demo accounts live in this browser. Review each request, choose the person’s position and data domain, then sign out and sign in as that person to see their workspace.</div>
+    <div class="card" style="margin-bottom:14px"><h3>Pending requests <span id="uc"></span></h3><div id="uq"></div></div>
+    <div class="card"><h3>People with a decision</h3><div class="tw" id="ug"></div></div>
+    <div class="err" id="uErr"></div>
+  </section>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/alasql/4.1.8/alasql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const money=v=>"$"+Math.round(v).toLocaleString("en-US");
+const pct=v=>(v*100).toFixed(1)+"%";
+let DATA=[],charts=[];
+
+// ---------- sample data (seeded) ----------
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function sample(n){
+  const r=rng(42),pick=(o)=>{let x=r(),s=0;for(const k in o){s+=o[k];if(x<s)return k}return Object.keys(o).pop()};
+  return Array.from({length:n},(_,i)=>{
+    const contract=pick({"Month-to-month":.55,"One year":.21,"Two year":.24});
+    const internet=pick({"DSL":.34,"Fiber optic":.44,"No":.22});
+    const tenure=contract==="Month-to-month"?Math.min(72,1+Math.floor(-Math.log(1-r())*18)):6+Math.floor(r()*67);
+    const base={No:20,DSL:45,"Fiber optic":80}[internet];
+    const monthly=+(base+(r()-.5)*(internet==="No"?10:28)).toFixed(2);
+    let p={"Month-to-month":.38,"One year":.11,"Two year":.03}[contract]+(internet==="Fiber optic"?.12:0)+(tenure<12?.1:tenure>48?-.08:0);
+    return{id:"C"+String(i+1).padStart(4,"0"),gender:r()<.5?"Male":"Female",tenure,contract,internet,
+      monthly_charges:monthly,total_charges:+(monthly*tenure*(.95+r()*.1)).toFixed(2),churn:r()<Math.max(.01,p)?"Yes":"No"};
+  });
+}
+
+// ---------- filters ----------
+const dimsDef=[["contract","fContract"],["internet","fInternet"],["gender","fGender"]];
+function buildFilters(){
+  dimsDef.forEach(([k,el])=>{
+    const vals=[...new Set(DATA.map(d=>d[k]))].sort();
+    $("#"+el).innerHTML=vals.map(v=>`<label class="c"><input type="checkbox" data-k="${k}" value="${v}" checked> ${v}</label>`).join("");
+  });
+  $("#tMin").value=0;$("#tMax").value=Math.max(...DATA.map(d=>d.tenure));
+  document.querySelectorAll("aside input").forEach(i=>{if(i.id!=="file")i.onchange=render});
+  lockScope();
+}
+function filtered(){
+  const sel={};dimsDef.forEach(([k])=>sel[k]=new Set([...document.querySelectorAll(`input[data-k=${k}]:checked`)].map(i=>i.value)));
+  const lo=+$("#tMin").value||0,hi=$("#tMax").value===""?1e9:+$("#tMax").value;
+  return DATA.filter(d=>dimsDef.every(([k])=>sel[k].has(d[k]))&&d.tenure>=lo&&d.tenure<=hi&&inScope(d));
+}
+
+// ---------- stats ----------
+const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
+function stats(rows){const ch=rows.filter(d=>d.churn==="Yes");
+  return{n:rows.length,ch:ch.length,rate:rows.length?ch.length/rows.length:0,avg:rows.length?sum(rows,d=>d.monthly_charges)/rows.length:0,rev:sum(ch,d=>d.monthly_charges)}}
+function group(rows,fn,order){const m={};rows.forEach(d=>(m[fn(d)]??=[]).push(d));
+  const keys=order||Object.keys(m).sort();return keys.filter(k=>m[k]).map(k=>({k,...stats(m[k])}))}
+const tenureB=d=>d.tenure<=12?"0–12 mo":d.tenure<=24?"13–24 mo":d.tenure<=48?"25–48 mo":"49+ mo";
+const tenureO=["0–12 mo","13–24 mo","25–48 mo","49+ mo"];
+const chargeB=d=>d.monthly_charges<30?"Under $30":d.monthly_charges<60?"$30–60":d.monthly_charges<90?"$60–90":"$90+";
+const chargeO=["Under $30","$30–60","$60–90","$90+"];
+
+// ---------- charts ----------
+function chart(id,cfg){
+  const css=getComputedStyle(document.documentElement);
+  Chart.defaults.color=css.getPropertyValue("--mu").trim();Chart.defaults.borderColor=css.getPropertyValue("--bd").trim();
+  const c=new Chart($("#"+id),cfg);charts.push(c);
+}
+function barCfg(g){return{type:"bar",data:{labels:g.map(x=>x.k),datasets:[{label:"Churn rate %",data:g.map(x=>+(x.rate*100).toFixed(1)),backgroundColor:getComputedStyle(document.documentElement).getPropertyValue("--ac").trim(),borderRadius:6}]},
+  options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+"%"}}}}}}
+function table(g,label){return`<div class="tw"><table><tr><th>${label}</th><th class="n">Customers</th><th class="n">Churned</th><th class="n">Churn rate</th><th class="n">Avg monthly</th><th class="n">Revenue at risk</th></tr>`+
+  g.map(x=>`<tr><td>${x.k}</td><td class="n">${x.n.toLocaleString()}</td><td class="n">${x.ch.toLocaleString()}</td><td class="n">${pct(x.rate)}</td><td class="n">${money(x.avg)}</td><td class="n">${money(x.rev)}</td></tr>`).join("")+"</table></div>"}
+
+// ---------- render ----------
+function render(){
+  charts.forEach(c=>c.destroy());charts=[];
+  if($("#app").classList.contains("hide"))return;
+  const rows=filtered(),s=stats(rows);
+  $("#dn").textContent=`${s.n.toLocaleString()} of ${DATA.filter(inScope).length.toLocaleString()} customers ${SCOPE?'in your domain ('+SCOPE.val+') ':''}match the current filters.`;
+  const k=[["Total customers",s.n.toLocaleString()],["Churned",s.ch.toLocaleString()],["Churn rate",pct(s.rate)],["Avg monthly charges",money(s.avg)+(s.n?"":"")],["Revenue at risk / mo",money(s.rev)]];
+  $("#kpis").innerHTML=k.map(([l,v],i)=>`<div class="card kpi"><div class="l">${l}</div><div class="v" style="${i>=1&&i!==3?"color:var(--rd)":""}">${v}</div><div class="note" style="margin:4px 0 0;font-size:12px">${KH[i]}</div></div>`).join("");
+  const css=getComputedStyle(document.documentElement);
+  chart("c1",{type:"doughnut",data:{labels:["Retained","Churned"],datasets:[{data:[s.n-s.ch,s.ch],backgroundColor:[css.getPropertyValue("--gn").trim(),css.getPropertyValue("--rd").trim()],borderWidth:0}]},options:{maintainAspectRatio:false,cutout:"62%"}});
+  chart("c2",barCfg(group(rows,d=>d.contract)));
+  chart("c3",barCfg(group(rows,tenureB,tenureO)));
+  // analysis
+  const defs=[["Contract",d=>d.contract],["Internet service",d=>d.internet],["Gender",d=>d.gender],["Tenure group",tenureB,tenureO],["Monthly charge band",chargeB,chargeO]];
+  $("#dims").innerHTML=defs.map((d,i)=>`<div class="card" style="margin-bottom:14px"><h3>Churn by ${d[0].toLowerCase()}</h3><div class="grid" style="margin:0"><div class="cv" style="height:200px"><canvas id="a${i}"></canvas></div>${table(group(rows,d[1],d[2]),d[0])}</div></div>`).join("");
+  defs.forEach((d,i)=>chart("a"+i,barCfg(group(rows,d[1],d[2]))));
+  renderHigh(rows);
+  CUR={rows,s};renderImpact();renderRecs();renderPreview();renderInsights();renderModel();renderWorkspace();
+}
+
+// ---------- safe SELECT-only SQL ----------
+const presets={
+  "Churn rate by contract":"SELECT contract, COUNT(*) AS customers, SUM(CASE WHEN churn='Yes' THEN 1 ELSE 0 END) AS churned, ROUND(100.0*SUM(CASE WHEN churn='Yes' THEN 1 ELSE 0 END)/COUNT(*),1) AS churn_pct FROM customers GROUP BY contract ORDER BY churn_pct DESC",
+  "Top 10 highest-paying churned customers":"SELECT id, contract, internet, tenure, monthly_charges FROM customers WHERE churn='Yes' ORDER BY monthly_charges DESC LIMIT 10",
+  "Revenue at risk by internet service":"SELECT internet, ROUND(SUM(monthly_charges),0) AS revenue_at_risk FROM customers WHERE churn='Yes' GROUP BY internet ORDER BY revenue_at_risk DESC",
+  "Avg tenure: churned vs retained":"SELECT churn, ROUND(AVG(tenure),1) AS avg_tenure, COUNT(*) AS customers FROM customers GROUP BY churn"
+};
+$("#preset").innerHTML=Object.keys(presets).map(k=>`<option>${k}</option>`).join("");
+$("#preset").onchange=()=>$("#sql").value=presets[$("#preset").value];
+$("#sql").value=presets["Churn rate by contract"];
+function validate(q){
+  q=q.trim().replace(/;\s*$/,"");
+  if(!/^select\b/i.test(q))throw"Only SELECT statements are allowed.";
+  if(q.includes(";"))throw"Only one statement is allowed.";
+  if(/--|\/\*/.test(q))throw"Comments are not allowed.";
+  if(/\b(insert|update|delete|drop|create|alter|attach|detach|into|exec|execute|call|set|truncate|merge|replace|pragma|use|show|declare|require|import|function|eval|new|this|window|document|fetch|constructor|prototype|join|union|js)\b|=>|`|@|\$|\\/i.test(q))throw"That query contains a keyword that is not allowed.";
+  const from=[...q.matchAll(/\bfrom\s+([a-z_]\w*)/gi)];
+  if(!from.length||from.some(m=>m[1].toLowerCase()!=="customers"))throw"Query must read FROM customers only.";
+  return q;
+}
+$("#run").onclick=()=>{
+  $("#qe").textContent="";$("#qm").textContent="";$("#qr").innerHTML="";
+  try{
+    if(typeof alasql==="undefined")throw"SQL engine failed to load.";
+    const q=validate($("#sql").value);
+    const res=alasql(q);
+    if(!Array.isArray(res))throw"Query did not return rows.";
+    const cols=res.length?Object.keys(res[0]):[];
+    $("#qm").textContent=`${res.length} row${res.length===1?"":"s"}`+(res.length>200?" (showing 200)":"");
+    $("#qr").innerHTML=res.length?`<table><tr>${cols.map(c=>`<th>${c}</th>`).join("")}</tr>`+res.slice(0,200).map(r=>`<tr>${cols.map(c=>`<td>${String(r[c]??"").replace(/[<&]/g,m=>m=="<"?"&lt;":"&amp;")}</td>`).join("")}</tr>`).join("")+"</table>":"<div class='note'>No rows.</div>";
+  }catch(e){$("#qe").textContent=typeof e==="string"?e:"Query error: "+(e.message||e)}
+};
+
+// ---------- data loading ----------
+function load(rows,src){
+  DATA=rows;$("#src").textContent=src;
+  try{alasql("DROP TABLE IF EXISTS customers");alasql("CREATE TABLE customers");alasql.tables.customers.data=DATA}catch(e){}
+  train();buildFilters();render();
+}
+function parseCSV(t){
+  const lines=t.trim().split(/\r?\n/),h=lines.shift().split(",").map(x=>x.trim().toLowerCase());
+  const ix=n=>h.indexOf(n);const g=(r,...n)=>{for(const x of n){const i=ix(x);if(i>-1)return r[i]?.trim()}return""};
+  return lines.map(l=>l.split(",")).map((r,i)=>({id:g(r,"customerid","id")||"R"+i,gender:g(r,"gender"),tenure:+g(r,"tenure")||0,contract:g(r,"contract"),internet:g(r,"internetservice","internet"),
+    monthly_charges:+g(r,"monthlycharges","monthly_charges")||0,total_charges:+g(r,"totalcharges","total_charges")||0,churn:/^y/i.test(g(r,"churn"))?"Yes":"No"}));
+}
+$("#up").onclick=()=>$("#file").click();
+$("#file").onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();
+  fr.onload=()=>{const rows=parseCSV(fr.result);rows.length?load(rows,`Loaded ${f.name}`):alert("No rows found.")};fr.readAsText(f)};
+$("#reset").onclick=()=>buildFilters()||render();
+function showPage(p){["W","D","A","P","I","R","X","M","U"].forEach(x=>{$("#p"+x).classList.toggle("hide",x!==p);$("#n"+x).classList.toggle("on",x===p)});render()}
+$("#nD").onclick=()=>showPage("D");
+$("#nA").onclick=()=>showPage("A");
+$("#nP").onclick=()=>showPage("P");
+$("#nI").onclick=()=>showPage("I");
+$("#nR").onclick=()=>showPage("R");
+$("#nX").onclick=()=>showPage("X");
+$("#nM").onclick=()=>showPage("M");
+// ---------- prediction model (logistic regression, trained in the browser) ----------
+let MODEL=null,BULK=[],HS={k:"p",dir:-1};
+const sig=z=>1/(1+Math.exp(-z));
+const esc=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const level=p=>p>=.6?"High":p>=.3?"Medium":"Low";
+function vec(d){const M=MODEL;return[(d.tenure-M.tm)/M.ts,(d.monthly_charges-M.mm)/M.ms,...M.cons.map(c=>+(d.contract===c)),...M.ints.map(c=>+(d.internet===c)),+(d.gender==="Male")]}
+function prob(d){const x=vec(d);let z=MODEL.b;for(let i=0;i<x.length;i++)z+=MODEL.w[i]*x[i];return sig(z)}
+function train(){
+  const mean=a=>a.reduce((s,x)=>s+x,0)/a.length,sd=(a,m)=>Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/a.length)||1;
+  const t=DATA.map(d=>d.tenure),c=DATA.map(d=>d.monthly_charges),tm=mean(t),mm=mean(c);
+  const uniq=k=>[...new Set(DATA.map(d=>d[k]))].sort();
+  MODEL={tm,ts:sd(t,tm),mm,ms:sd(c,mm),cons:uniq("contract"),ints:uniq("internet"),w:[],b:0};
+  const X=DATA.map(vec),y=DATA.map(d=>+(d.churn==="Yes")),k=X[0].length;
+  const rg=rng(7),idx=[...DATA.keys()];for(let i=idx.length-1;i>0;i--){const j=Math.floor(rg()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}
+  const cut=Math.floor(idx.length*.8),tr=idx.slice(0,cut),te=idx.slice(cut),n=tr.length;
+  MODEL.w=Array(k).fill(0);
+  for(let e=0;e<300;e++){
+    const g=Array(k).fill(0);let gb=0;
+    for(const i of tr){let z=MODEL.b;const xi=X[i];for(let j=0;j<k;j++)z+=MODEL.w[j]*xi[j];const r=sig(z)-y[i];gb+=r;for(let j=0;j<k;j++)g[j]+=r*xi[j]}
+    MODEL.b-=.5*gb/n;for(let j=0;j<k;j++)MODEL.w[j]-=.5*(g[j]/n+.001*MODEL.w[j]);
+  }
+  DATA.forEach(d=>d.p=prob(d));
+  let tp=0,fp=0,tn=0,fn=0;
+  te.forEach(i=>{const pr=prob(DATA[i])>=.5,ac=y[i]===1;if(pr&&ac)tp++;else if(pr)fp++;else if(ac)fn++;else tn++});
+  const T=te.length||1,ev={tp,fp,tn,fn,n:te.length,acc:(tp+tn)/T,prec:tp/((tp+fp)||1),rec:tp/((tp+fn)||1)};
+  ev.f1=2*ev.prec*ev.rec/((ev.prec+ev.rec)||1);
+  const sc=te.map(i=>[prob(DATA[i]),y[i]]).sort((a,b)=>a[0]-b[0]);let rs=0;sc.forEach(([,l],i)=>{if(l)rs+=i+1});
+  const P=tp+fn,N=tn+fp;ev.auc=P&&N?(rs-P*(P+1)/2)/(P*N):.5;
+  MODEL.ev=ev;MODEL.nTrain=n;
+  const names=['Tenure','Monthly charges',...MODEL.cons.map(c=>'Contract: '+c),...MODEL.ints.map(c=>'Internet: '+c),'Gender: Male'];
+  MODEL.imp=names.map((nm,i)=>({n:nm,w:MODEL.w[i]})).sort((a,b)=>Math.abs(b.w)-Math.abs(a.w));
+  $("#mn").textContent=`Logistic regression trained in your browser and checked on a 20% hold-out set (test accuracy ${(MODEL.ev.acc*100).toFixed(1)}%). See the About & model page. Risk levels: Low under 30%, Medium 30\u201360%, High 60% or more.`;
+  const opts=a=>a.map(v=>`<option>${esc(v)}</option>`).join("");
+  $("#fG").innerHTML=opts(uniq("gender"));$("#fC").innerHTML=opts(MODEL.cons);$("#fI").innerHTML=opts(MODEL.ints);
+  $("#pOut").innerHTML="";$("#bOut").innerHTML="";wInit();
+}
+function advice(d,p){
+  const lv=level(p),s=[];
+  if(lv==="Low")return["Low risk: no urgent action. Keep service quality high and check in periodically.","Good candidate for upsell, add-on services or a referral request."];
+  if(lv==="High")s.push("Priority: have an account manager contact this customer within the week.");
+  if(d.contract==="Month-to-month")s.push("Offer a discount or perk to move from month-to-month to a 1- or 2-year contract.");
+  if(d.tenure<12)s.push("New customer: run an onboarding call and a 30-day check-in to build early engagement.");
+  if(d.internet==="Fiber optic")s.push("Check fibre service quality (outages, speed) and offer a tech visit or premium support.");
+  if(d.monthly_charges>=80)s.push("High monthly bill: review the plan and offer a loyalty discount or a better-fit bundle.");
+  if(d.tenure>=48)s.push("Long-standing customer: send a personal thank-you and a loyalty reward.");
+  if(s.length<2)s.push("Run a short satisfaction survey and follow up on any complaints.");
+  return s.slice(0,4);
+}
+function tbl(rows){const c=Object.keys(rows[0]);return`<table><tr>${c.map(x=>`<th>${esc(x)}</th>`).join("")}</tr>${rows.map(r=>`<tr>${c.map(x=>`<td>${esc(r[x])}</td>`).join("")}</tr>`).join("")}</table>`}
+$("#pBtn").onclick=()=>{
+  const d={gender:$("#fG").value,tenure:+$("#fT").value||0,contract:$("#fC").value,internet:$("#fI").value,monthly_charges:+$("#fM").value||0};
+  const p=prob(d),lv=level(p),col=lv==="Low"?"gn":lv==="High"?"rd":"ac";
+  $("#pOut").innerHTML=`<div style="margin-top:14px"><div style="font-size:30px;font-weight:700">${(p*100).toFixed(1)}%</div><div class="note" style="margin:0 0 8px">churn probability <span class="bd ${lv}">${lv} risk</span></div><div class="bar"><i style="width:${(p*100).toFixed(1)}%;background:var(--${col})"></i></div><h4>Retention suggestions</h4><ul style="margin:0;padding-left:18px">${advice(d,p).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`;
+};
+$("#bUp").onclick=()=>$("#bFile").click();
+$("#bFile").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const fr=new FileReader();
+  fr.onload=()=>{
+    const rows=parseCSV(fr.result);
+    if(!rows.length){$("#bOut").textContent="No rows found in that file.";return}
+    BULK=rows.map(d=>{const p=prob(d);return{customer_id:d.id,gender:d.gender,tenure:d.tenure,contract:d.contract,internet_service:d.internet,monthly_charges:d.monthly_charges,churn_probability_pct:+(p*100).toFixed(1),risk_level:level(p),top_suggestion:advice(d,p)[0]}});
+    const c=l=>BULK.filter(r=>r.risk_level===l).length;
+    $("#bOut").innerHTML=`<div class="note" style="margin-top:10px">${BULK.length.toLocaleString()} customers scored from ${esc(f.name)}: <b>${c("High")}</b> high, <b>${c("Medium")}</b> medium, <b>${c("Low")}</b> low.</div><button class="btn p" id="bDl">Download results (CSV)</button><div class="err" id="bErr"></div><div class="tw" style="margin-top:10px">${tbl(BULK.slice(0,10))}</div><div class="note">Preview of the first 10 rows.</div>`;
+    $("#bDl").onclick=download;
+  };
+  fr.readAsText(f);e.target.value="";
+};
+async function download(){
+  const cols=Object.keys(BULK[0]),q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  const csv=cols.join(",")+"\n"+BULK.map(r=>cols.map(c=>q(r[c])).join(",")).join("\n");
+  try{saveBlob("retainiq_predictions.csv",csv)}
+  catch(e){
+    if(e&&e.code==="declined")return;
+    $("#bErr").textContent="Direct download isn\u2019t available here. Copy the CSV from the box below.";
+    if(!$("#bCsv")){const t=document.createElement("textarea");t.id="bCsv";t.rows=6;t.readOnly=true;t.value=csv;$("#bErr").after(t)}
+  }
+}
+function renderHigh(rows){
+  const top=rows.filter(d=>d.churn==="No"&&d.p!=null).sort((a,b)=>b.p-a.p).slice(0,50);
+  top.sort((a,b)=>{const x=a[HS.k],y=b[HS.k];return(typeof x==="number"?x-y:String(x).localeCompare(String(y)))*HS.dir});
+  const H=[["id","Customer"],["gender","Gender"],["tenure","Tenure",1],["contract","Contract"],["internet","Internet"],["monthly_charges","Monthly",1],["p","Churn prob.",1]];
+  $("#hr").innerHTML=`<table><tr>${H.map(([k,l,n])=>`<th data-k="${k}" class="${n?"n":""}">${l}${HS.k===k?(HS.dir>0?" \u25B2":" \u25BC"):""}</th>`).join("")}<th>Risk</th></tr>`+
+    top.map(d=>`<tr><td>${esc(d.id)}</td><td>${esc(d.gender)}</td><td class="n">${d.tenure}</td><td>${esc(d.contract)}</td><td>${esc(d.internet)}</td><td class="n">${money(d.monthly_charges)}</td><td class="n">${(d.p*100).toFixed(1)}%</td><td><span class="bd ${level(d.p)}">${level(d.p)}</span></td></tr>`).join("")+"</table>";
+  $("#hr").querySelectorAll("th[data-k]").forEach(th=>th.onclick=()=>{
+    const k=th.dataset.k;HS=HS.k===k?{k,dir:-HS.dir}:{k,dir:["id","gender","contract","internet"].includes(k)?1:-1};renderHigh(rows);
+  });
+}
+// ---------- revenue impact, recommendations, report ----------
+let CUR={rows:[],s:stats([])};
+const DIMS=[['Contract',d=>d.contract],['Internet service',d=>d.internet],['Gender',d=>d.gender],['Tenure group',tenureB,tenureO],['Monthly charge band',chargeB,chargeO]];
+const ACT={'Month-to-month':'Offer a 10-15% discount or perk for moving to a 1- or 2-year plan, and run a switch-and-save campaign.','One year':'Send renewal reminders 60 days ahead with a loyalty bonus to prevent drop-off at term end.','Two year':'Protect this base with proactive check-ins and early-renewal rewards.','Fiber optic':'Audit fibre reliability and support tickets; offer premium support, speed guarantees and a price-match check.','DSL':'Promote upgrade offers and bundles to raise perceived value.','No':'Cross-sell internet or add-on bundles to deepen the relationship.','0\u201312 mo':'Build an onboarding journey: welcome call, 30/60/90-day check-ins and a first-year loyalty offer.','13\u201324 mo':'Re-engage before the second year with usage tips, bundles and a mid-term loyalty reward.','25\u201348 mo':'Reward loyalty with upgrades and personalised offers; watch for price-sensitivity signals.','49+ mo':'Send a personal thank-you and long-term loyalty perks to protect these valuable customers.','Under $30':'Offer low-cost add-ons that raise value without a big price jump.','$30\u201360':'Review plan fit and offer bundles that add value at the same price.','$60\u201390':'Check plan fit and send loyalty offers before price-driven switching starts.','$90+':'Review pricing and plan fit; offer loyalty discounts or tailored bundles to high-paying customers.'};
+const ACT_DIM={'Contract':'Review contract terms and incentives for this group.','Internet service':'Review service quality and pricing for this service type.','Gender':'Churn differs by gender: review messaging and offers for this group, without gender-based pricing.','Tenure group':'Tailor lifecycle campaigns to this tenure stage.','Monthly charge band':'Review pricing and plan fit for this spend band.'};
+function impact(x){const s=CUR.s,f=x/100,cost=+$('#xc').value||0,mon=s.rev*f,ann=mon*12;return{x,cust:s.ch*f,mon,ann,cost,net:ann-cost,newRate:s.rate*(1-f)}}
+function renderImpact(){
+  const x=+$('#xr').value;$('#xv').textContent=x;const i=impact(x);
+  const k=[['Customers retained',Math.round(i.cust).toLocaleString()],['Monthly revenue saved',money(i.mon)],['Annual revenue saved',money(i.ann)],['Net annual benefit',money(i.net)],['New churn rate',pct(i.newRate)]];
+  $('#xk').innerHTML=k.map(([l,v],j)=>`<div class="card kpi"><div class="l">${l}</div><div class="v" style="${j==3?'color:var(--gn)':''}">${v}</div></div>`).join('');
+  const sc=[5,10,15,20,30,50].map(impact),mx=Math.max(...sc.map(r=>r.ann),1);
+  $('#xs').innerHTML='<table><tr><th>Churn reduction</th><th class="n">Customers retained</th><th class="n">New churn rate</th><th class="n">Annual revenue saved</th><th class="n">Net annual</th><th style="width:22%"></th></tr>'+sc.map(r=>`<tr><td>${r.x}%</td><td class="n">${Math.round(r.cust).toLocaleString()}</td><td class="n">${pct(r.newRate)}</td><td class="n">${money(r.ann)}</td><td class="n">${money(r.net)}</td><td><div class="bar"><i style="width:${(r.ann/mx*100).toFixed(0)}%;background:var(--gn)"></i></div></td></tr>`).join('')+'</table>';
+}
+function recs(){
+  const {rows,s}=CUR,out=[];
+  DIMS.forEach(([dn,fn,ord])=>group(rows,fn,ord).forEach(g=>{if(g.n>=20&&g.rate>s.rate*1.05&&g.rev>0)out.push({dim:dn,...g})}));
+  out.sort((a,b)=>b.rev-a.rev);
+  return out.slice(0,5).map((g,i)=>({pri:i<2?'High':'Medium',seg:g.dim+': '+g.k,n:g.n,rate:g.rate,rev:g.rev,save:g.rev*.2*12,act:ACT[g.k]||ACT_DIM[g.dim]}));
+}
+function renderRecs(){
+  const r=recs(),s=CUR.s;
+  const card=(t,badge,meta,act,extra)=>`<div class="card" style="margin-bottom:12px"><div class="row" style="margin:0 0 6px"><b>${esc(t)}</b>${badge?`<span class="bd ${badge}">${badge} priority</span>`:''}</div>${meta?`<div class="note" style="margin-bottom:6px">${meta}</div>`:''}<div>${esc(act)}</div>${extra||''}</div>`;
+  $('#rc').innerHTML=(r.length?r.map(g=>card(g.seg,g.pri,`${g.n.toLocaleString()} customers \u00b7 churn rate ${pct(g.rate)} (overall ${pct(s.rate)}) \u00b7 revenue at risk ${money(g.rev)}/mo`,g.act,`<div class="note" style="margin:8px 0 0">Potential saving at 20% less churn: <b>${money(g.save)}</b> per year</div>`)).join(''):`<div class="card note">No segment stands out against the overall churn rate of ${pct(s.rate)} with the current filters.</div>`)
+   +card('Act on the high-risk list','','','Contact the top 50 high-risk customers (Predict tab) every week with a personal offer, and track how many you save.')
+   +card('Measure and iterate','','','Re-run this analysis monthly with fresh data and A/B test retention offers before rolling them out.');
+}
+function filterDesc(){return dimsDef.map(([k])=>{const all=[...document.querySelectorAll(`input[data-k=${k}]`)],on=all.filter(i=>i.checked);return k+': '+(on.length===all.length?'all':on.map(i=>i.value).join('/')||'none')}).concat('tenure: '+($('#tMin').value||0)+'-'+($('#tMax').value||'max')+' months').join('; ')}
+function reportData(){const {rows,s}=CUR,x=+$('#xr').value;return{s,x,i:impact(x),seg:DIMS.flatMap(([dn,fn,ord])=>group(rows,fn,ord).map(g=>({dim:dn,...g}))),rec:recs(),filters:filterDesc(),date:new Date().toISOString().slice(0,10)}}
+function renderPreview(){
+  const R=reportData();
+  $('#xp').innerHTML=`<div class="note">${esc(R.filters)}</div>`+(R.seg.length?tbl(R.seg.map(g=>({dimension:g.dim,segment:g.k,customers:g.n,churned:g.ch,churn_rate:pct(g.rate),revenue_at_risk:money(g.rev)}))):'<div class="note">No customers match the filters.</div>');
+}
+function reportCSV(){
+  const R=reportData(),q=v=>'"'+String(v).replace(/"/g,'""')+'"',L=[],add=(...c)=>L.push(c.map(q).join(','));
+  add('RetainIQ churn report');add('Company','DemoTel Communications (sample data)');add('Date',R.date);add('Filters',R.filters);L.push('');
+  add('Summary');add('Total customers',R.s.n);add('Churned',R.s.ch);add('Churn rate %',(R.s.rate*100).toFixed(1));add('Avg monthly charges',R.s.avg.toFixed(2));add('Revenue at risk per month',R.s.rev.toFixed(2));L.push('');
+  add('Revenue impact at '+R.x+'% churn reduction');add('Customers retained',Math.round(R.i.cust));add('Monthly revenue saved',R.i.mon.toFixed(2));add('Annual revenue saved',R.i.ann.toFixed(2));add('Program cost per year',R.i.cost);add('Net annual benefit',R.i.net.toFixed(2));L.push('');
+  add('Segment','Value','Customers','Churned','Churn rate %','Avg monthly','Revenue at risk per month');
+  R.seg.forEach(g=>add(g.dim,g.k,g.n,g.ch,(g.rate*100).toFixed(1),g.avg.toFixed(2),g.rev.toFixed(2)));L.push('');
+  add('Recommendation','Priority','Customers','Churn rate %','Annual saving at 20% reduction','Action');
+  R.rec.forEach(r=>add(r.seg,r.pri,r.n,(r.rate*100).toFixed(1),r.save.toFixed(0),r.act));
+  return L.join('\n');
+}
+function reportPDF(){
+  const R=reportData(),doc=new window.jspdf.jsPDF({unit:'pt',format:'a4'});let y=50;
+  const clean=t=>String(t).replace(/[\u2013\u2014]/g,'-').replace(/[^\x20-\x7E]/g,'');
+  const chk=h=>{if(y+h>800){doc.addPage();y=50}};
+  const txt=(t,sz=10,b=false)=>{doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(sz);doc.splitTextToSize(clean(t),515).forEach(l=>{chk(sz+4);doc.text(l,40,y);y+=sz+4})};
+  const row=(c,xs,b)=>{chk(16);doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(9);c.forEach((v,i)=>doc.text(clean(v),xs[i],y));y+=14};
+  txt('RetainIQ - Customer Churn Report',18,true);y+=4;txt('Company: DemoTel Communications (sample data)',9);txt('Date: '+R.date,9);txt('Filters: '+R.filters,9);y+=8;
+  txt('Summary',13,true);
+  [['Total customers',R.s.n.toLocaleString()],['Churned',R.s.ch.toLocaleString()],['Churn rate',pct(R.s.rate)],['Avg monthly charges',money(R.s.avg)],['Revenue at risk / month',money(R.s.rev)]].forEach(a=>row(a,[40,220]));
+  y+=8;txt('Revenue impact at '+R.x+'% churn reduction',13,true);
+  [['Customers retained',Math.round(R.i.cust).toLocaleString()],['Monthly revenue saved',money(R.i.mon)],['Annual revenue saved',money(R.i.ann)],['Program cost per year',money(R.i.cost)],['Net annual benefit',money(R.i.net)]].forEach(a=>row(a,[40,220]));
+  y+=8;txt('Churn by segment',13,true);const xs=[40,150,260,330,395,460];
+  row(['Dimension','Value','Customers','Churned','Churn %','Rev at risk'],xs,true);
+  R.seg.forEach(g=>row([g.dim,g.k,g.n,g.ch,(g.rate*100).toFixed(1)+'%',money(g.rev)],xs));
+  y+=8;txt('Recommendations',13,true);
+  R.rec.forEach((r,i)=>{txt((i+1)+'. ['+r.pri+'] '+r.seg+' - '+r.n+' customers, churn '+pct(r.rate)+', at risk '+money(r.rev)+'/mo',10,true);txt(r.act,9);txt('Potential saving at 20% less churn: '+money(r.save)+' per year',9);y+=4});
+  return doc.output('blob');
+}
+async function saveFile(name,data){
+  $('#xErr').textContent='';
+  try{saveBlob(name,data)}
+  catch(e){if(e&&e.code==='declined')return;$('#xErr').textContent='Direct download isn\u2019t available in this view. Open the page from its claude.ai link and try again.'}
+}
+$('#xCsv').onclick=()=>saveFile('retainiq_report.csv',reportCSV());
+$('#xPdf').onclick=()=>{if(!window.jspdf){$('#xErr').textContent='The PDF library failed to load. Try the CSV export.';return}saveFile('retainiq_report.pdf',reportPDF())};
+$('#xr').oninput=$('#xc').oninput=renderImpact;
+$('#theme').onclick=()=>{const dk=matchMedia('(prefers-color-scheme: dark)').matches,r=document.documentElement,cur=r.dataset.theme||(dk?'dark':'light');r.dataset.theme=cur==='dark'?'light':'dark';render()};
+// ---------- what-if simulator ----------
+let WB={gender:'Male',tenure:12,contract:'',internet:'',monthly_charges:70};
+function wInit(){
+  const o=a=>a.map(v=>`<option>${esc(v)}</option>`).join('');
+  $('#wC').innerHTML=o(MODEL.cons);$('#wI').innerHTML=o(MODEL.ints);
+  $('#wT').max=Math.max(72,...DATA.map(d=>d.tenure));
+  $('#wM').max=Math.ceil(Math.max(...DATA.map(d=>d.monthly_charges)))+10;
+  wFromForm();
+}
+function wFromForm(){WB={gender:$('#fG').value,tenure:+$('#fT').value||0,contract:$('#fC').value,internet:$('#fI').value,monthly_charges:+$('#fM').value||0};wSet(WB)}
+function wSet(b){$('#wT').value=b.tenure;$('#wM').value=b.monthly_charges;$('#wC').value=b.contract;$('#wI').value=b.internet;renderWhatIf()}
+function renderWhatIf(){
+  if(!MODEL)return;
+  const c={...WB,tenure:+$('#wT').value,monthly_charges:+$('#wM').value,contract:$('#wC').value,internet:$('#wI').value};
+  const p0=prob(WB),p1=prob(c),l0=level(p0),l1=level(p1),dl=(p1-p0)*100;
+  $('#wTv').textContent=c.tenure;$('#wMv').textContent=money(c.monthly_charges);
+  const col=l=>l==='Low'?'gn':l==='High'?'rd':'ac';
+  const blk=(t,p,l)=>`<div style="flex:1;min-width:200px"><div class="note" style="margin:0">${t}</div><div style="font-size:28px;font-weight:700">${(p*100).toFixed(1)}%</div><span class="bd ${l}">${l} risk</span><div class="bar" style="margin-top:8px"><i style="width:${(p*100).toFixed(1)}%;background:var(--${col(l)})"></i></div></div>`;
+  const fac=[['Tenure','tenure',v=>v+' mo'],['Monthly charges','monthly_charges',money],['Contract','contract',v=>v],['Internet service','internet',v=>v]]
+    .filter(([,k])=>c[k]!==WB[k]).map(([n,k,f])=>({Factor:n,Change:f(WB[k])+' \u2192 '+f(c[k]),'Effect alone':((prob({...WB,[k]:c[k]})-p0)*100>=0?'+':'')+((prob({...WB,[k]:c[k]})-p0)*100).toFixed(1)+' pts'}));
+  $('#wOut').innerHTML=`<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px">${blk('Baseline',p0,l0)}${blk('What-if',p1,l1)}</div>`+
+    `<div style="margin-top:12px"><b>Change in churn probability: <span style="color:var(--${dl<=0?'gn':'rd'})">${dl>0?'+':''}${dl.toFixed(1)} pts</span></b></div>`+
+    (fac.length?`<div class="tw" style="margin-top:8px">${tbl(fac)}</div><div class="note" style="margin-top:6px">Each effect is measured by changing that factor alone from the baseline; combined changes can differ.</div>`:`<div class="note" style="margin-top:6px">Move a slider or change a dropdown to see the effect.</div>`)+
+    `<h4>Suggestions for the what-if customer</h4><ul style="margin:0;padding-left:18px">${advice(c,p1).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
+}
+['#wT','#wM'].forEach(s=>$(s).oninput=renderWhatIf);['#wC','#wI'].forEach(s=>$(s).onchange=renderWhatIf);
+$('#wLoad').onclick=wFromForm;$('#wReset').onclick=()=>wSet(WB);
+// ---------- insights and model page ----------
+const KH=['All customers in the current view','Customers who have left','Churned divided by total','Average bill per customer','Monthly bills lost to churn'];
+function renderInsights(){
+  const {rows,s}=CUR,L=[];
+  if(!s.n){$('#ki').innerHTML='<li>No customers match the current filters.</li>';return}
+  L.push(`${pct(s.rate)} of customers (${s.ch.toLocaleString()} of ${s.n.toLocaleString()}) have left, costing ${money(s.rev)} in monthly revenue, about ${money(s.rev*12)} a year.`);
+  [DIMS[0],DIMS[1],DIMS[3]].forEach(([dn,fn,ord])=>{
+    const g=group(rows,fn,ord).filter(x=>x.n>=20).sort((a,b)=>b.rate-a.rate);
+    if(g.length>1){const hi=g[0],lo=g[g.length-1];L.push(`${dn}: ${hi.k} has the highest churn (${pct(hi.rate)}) compared with ${pct(lo.rate)} for ${lo.k}`+(lo.rate>0?`, which is ${(hi.rate/lo.rate).toFixed(1)}x higher.`:'.'))}
+  });
+  const ch=rows.filter(d=>d.churn==='Yes'),rt=rows.filter(d=>d.churn==='No'),av=a=>a.length?a.reduce((x,d)=>x+d.tenure,0)/a.length:0;
+  if(ch.length&&rt.length)L.push(`Customers who left stayed ${av(ch).toFixed(0)} months on average, compared with ${av(rt).toFixed(0)} months for those who stayed.`);
+  const pos=MODEL&&MODEL.imp?MODEL.imp.find(x=>x.w>0):null;
+  if(pos)L.push(`The prediction model sees ${pos.n} as the strongest sign of churn risk.`);
+  $('#ki').innerHTML=L.map(t=>`<li>${esc(t)}</li>`).join('');
+}
+function renderModel(){
+  if(!MODEL||!MODEL.ev)return;const e=MODEL.ev;
+  const k=[['Accuracy',pct(e.acc),'Predictions that were correct'],['Precision',pct(e.prec),'Flagged customers who really left'],['Recall',pct(e.rec),'Leavers the model caught'],['F1 score',pct(e.f1),'Balance of precision and recall'],['ROC AUC',e.auc.toFixed(2),'0.5 = guessing, 1.0 = perfect']];
+  $('#mk').innerHTML=k.map(([l,v,h])=>`<div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="note" style="margin:4px 0 0;font-size:12px">${h}</div></div>`).join('');
+  const cell=(v,t,ok)=>`<div class="cmc" style="background:color-mix(in srgb,var(--${ok?'gn':'rd'}) 24%,transparent)"><div style="font-size:22px">${v}</div><div class="note" style="margin:0">${t}</div></div>`,lb=t=>`<div class="note" style="margin:0;text-align:center">${t}</div>`;
+  $('#cm').innerHTML=`<div class="cm"><div></div>${lb('Predicted: stays')}${lb('Predicted: leaves')}${lb('Actually stayed')}${cell(e.tn,'correct',1)}${cell(e.fp,'false alarm',0)}${lb('Actually left')}${cell(e.fn,'missed',0)}${cell(e.tp,'caught',1)}</div>`;
+  $('#mt').textContent=`The model learned from ${MODEL.nTrain.toLocaleString()} customers (80%) and was then tested on ${e.n.toLocaleString()} customers it had never seen (20%). Of the customers it flags as likely to leave, ${pct(e.prec)} really leave (precision), and it catches ${pct(e.rec)} of all real leavers (recall).`;
+  const im=MODEL.imp,css=getComputedStyle(document.documentElement),red=css.getPropertyValue('--rd').trim(),grn=css.getPropertyValue('--gn').trim();
+  chart('m1',{type:'bar',data:{labels:im.map(x=>x.n),datasets:[{data:im.map(x=>+x.w.toFixed(2)),backgroundColor:im.map(x=>x.w>0?red:grn),borderRadius:4}]},options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+  const up=im.find(x=>x.w>0),dn=im.find(x=>x.w<0);
+  $('#mt2').textContent='Red bars raise churn risk, green bars lower it (model weights). '+(up?`Raises risk most: ${up.n}. `:'')+(dn?`Lowers risk most: ${dn.n}.`:'');
+}
+// ---------- position-based workspaces ----------
+const PROFILES={
+'Executive / CEO':{ws:'Executive overview',pages:'WDAPIRXM',desc:'Company-wide view: revenue lost to churn, savings potential, recommendations and reports.',kpis:['total','rate','rev','annual','save20'],ch:['contract','internet','tenure'],tbl:'seg'},
+'General Manager (GM)':{ws:'Operations overview',pages:'WDAIRXM',desc:'Operations view: churn by contract, tenure and spend, revenue impact and recommendations.',kpis:['total','churned','rate','high','rev'],ch:['contract','tenure','charge'],tbl:'seg'},
+'Senior Manager':{ws:'Team performance',pages:'WDAPRM',desc:'Team view: churn rate, customers at risk, analysis, predictions and recommendations.',kpis:['rate','high','newcust','avg'],ch:['contract','internet'],tbl:'risk'},
+'Manager':{ws:'Team dashboard',pages:'WDAPM',desc:'Team view: churn rate, customers at risk, analysis and predictions.',kpis:['total','rate','high','avg'],ch:['contract','tenure'],tbl:'risk'},
+'Sales Manager':{ws:'Sales view',pages:'WDAIM',desc:'Sales view: contract mix, spend bands and customers who could move to longer contracts.',kpis:['m2m','upsell','avg','rev','rate'],ch:['contract','charge','tenure'],tbl:'upsell'},
+'Marketing Manager':{ws:'Campaign planner',pages:'WDARPM',desc:'Campaign view: which segments leave, new-customer churn and who to target.',kpis:['newcust','rate','high','total','avg'],ch:['tenure','charge','gender'],tbl:'risk'},
+'Customer Support Head':{ws:'Customer care desk',pages:'WPDAM',desc:'Care view: customers most likely to leave, service-type churn and who to call first.',kpis:['high','fiber','rate','churned','avgtenure'],ch:['internet','tenure'],tbl:'risk'},
+'Team Lead':{ws:'Team call list',pages:'WPAM',desc:'Call-list view: the customers your team should contact first.',kpis:['high','rate','total'],ch:['contract'],tbl:'risk'},
+'Analyst':{ws:'Analyst workbench',pages:'WDAPM',desc:'Analysis view: model quality, churn drivers, SQL queries and segment tables.',kpis:['total','rate','auc','drivers'],ch:['contract','internet','tenure'],tbl:'seg'},
+'Other':{ws:'Overview',pages:'WD',desc:'Basic overview of customers and churn.',kpis:['total','rate','churned'],ch:['contract'],tbl:'none'}
+};
+let VIEW=null;
+const curPos=()=>VIEW||(SESSION&&SESSION.role!=='Admin'?SESSION.position:'Executive / CEO');
+function applyProfile(){
+  const pos=curPos(),pf=PROFILES[pos]||PROFILES.Other,real=!!SESSION&&SESSION.role==='Admin',admin=real&&!VIEW;
+  const va=$('#viewAs');va.classList.toggle('hide',!real);
+  if(!va.options.length)va.innerHTML='<option value="">My admin view (everything)</option>'+Object.keys(PROFILES).map(p=>`<option>${esc(p)}</option>`).join('');
+  const pages=pf.pages+(admin?'U':'');
+  ['W','D','A','P','I','R','X','M','U'].forEach(x=>$('#n'+x).classList.toggle('hide',!pages.includes(x)));
+  $('#up').classList.toggle('hide',!admin);const sd=$('#saveDb');if(sd)sd.classList.toggle('hide',!admin);
+}
+function renderWorkspace(){
+  const {rows,s}=CUR,pos=curPos(),pf=PROFILES[pos]||PROFILES.Other;
+  const act=rows.filter(d=>d.churn==='No'&&d.p!=null),hi=act.filter(d=>d.p>=.6),m2m=rows.filter(d=>d.contract==='Month-to-month'),newc=rows.filter(d=>d.tenure<=12),fib=rows.filter(d=>d.internet==='Fiber optic'),left=rows.filter(d=>d.churn==='Yes');
+  const up=act.filter(d=>d.contract==='Month-to-month'&&d.tenure>=24),rate=a=>a.length?a.filter(d=>d.churn==='Yes').length/a.length:0;
+  const ev=MODEL&&MODEL.ev,drv=MODEL&&MODEL.imp?(MODEL.imp.find(x=>x.w>0)||{}).n:'';
+  const K={total:['Customers',s.n.toLocaleString(),'In your view'],churned:['Churned',s.ch.toLocaleString(),'Customers who left'],rate:['Churn rate',pct(s.rate),'Share who left'],avg:['Avg monthly bill',money(s.avg),'Per customer'],rev:['Revenue at risk',money(s.rev)+'/mo','Lost to churn'],annual:['Annual loss',money(s.rev*12),'Churned revenue x 12'],save20:['Saving at 20% less churn',money(s.rev*.2*12),'Per year'],high:['High-risk customers',hi.length.toLocaleString(),'Still active, risk 60%+'],m2m:['Month-to-month share',pct(rows.length?m2m.length/rows.length:0),'Customers with no contract'],upsell:['Upsell targets',up.length.toLocaleString(),'Month-to-month, 24+ months'],newcust:['New-customer churn',pct(rate(newc)),'Tenure up to 12 months'],fiber:['Fiber optic churn',pct(rate(fib)),'Service-type churn'],avgtenure:['Avg tenure of leavers',(left.length?left.reduce((a,d)=>a+d.tenure,0)/left.length:0).toFixed(0)+' mo','Months before leaving'],auc:['Model ROC AUC',ev?ev.auc.toFixed(2):'-','Prediction quality'],drivers:['Top churn driver',drv||'-','From the model']};
+  $('#wH').textContent=pos+' \u2013 '+pf.ws;
+  $('#wN').textContent='DemoTel Communications (sample data). '+pf.desc+(SCOPE?` Data domain: ${SCOPE.val}.`:'');
+  $('#wK').innerHTML=pf.kpis.map(k=>`<div class="card kpi"><div class="l">${K[k][0]}</div><div class="v">${esc(K[k][1])}</div><div class="note" style="margin:4px 0 0;font-size:12px">${K[k][2]}</div></div>`).join('');
+  const top=recs(),t0=top[0],F=[];
+  if(pos==='Executive / CEO'||pos==='General Manager (GM)'){F.push(`Churn costs ${money(s.rev*12)} a year (${pct(s.rate)} of customers).`,`Cutting churn by 20% would save about ${money(s.rev*.2*12)} a year.`);top.slice(0,3).forEach(r=>F.push(`${r.seg}: churn ${pct(r.rate)}, ${money(r.rev)}/mo at risk.`))}
+  else if(pos==='Sales Manager'){F.push(`${up.length} month-to-month customers have stayed 24+ months. Offer them a 1- or 2-year plan.`,`Month-to-month customers churn at ${pct(rate(m2m))}, against ${pct(rate(rows.filter(d=>d.contract!=='Month-to-month')))} for customers on a contract.`,`Moving these ${up.length} customers to a contract protects about ${money(up.reduce((a,d)=>a+d.monthly_charges,0))} a month.`)}
+  else if(pos==='Marketing Manager'){F.push(`New customers (up to 12 months) churn at ${pct(rate(newc))}. Run an onboarding campaign.`,`${hi.length} active customers are high risk: target them with a retention offer.`,t0?`Biggest segment to target: ${t0.seg} (churn ${pct(t0.rate)}).`:'Use the charts below to pick campaign segments.')}
+  else if(pos==='Customer Support Head'||pos==='Team Lead'){F.push(`${hi.length} active customers are high risk. Call the list below first.`,`Fiber optic customers churn at ${pct(rate(fib))}. Check service quality and open tickets.`)}
+  else if(pos==='Analyst'){F.push(`The model separates leavers from stayers with ROC AUC ${ev?ev.auc.toFixed(2):'-'}.`,'Use the SQL box on the Analysis page to dig into segments.')}
+  else{F.push(`Churn rate is ${pct(s.rate)}, with ${hi.length} high-risk active customers.`,t0?`Watch ${t0.seg} (churn ${pct(t0.rate)}).`:'No segment stands out right now.')}
+  $('#wF').innerHTML=F.map(t=>`<li>${esc(t)}</li>`).join('');
+  const CH={contract:['Churn rate by contract',d=>d.contract],internet:['Churn rate by internet service',d=>d.internet],tenure:['Churn rate by tenure',tenureB,tenureO],charge:['Churn rate by monthly charge',chargeB,chargeO],gender:['Churn rate by gender',d=>d.gender]};
+  $('#wG').innerHTML=pf.ch.map((k,i)=>`<div class="card"><h3>${CH[k][0]}</h3><div class="cv"><canvas id="wc${i}"></canvas></div></div>`).join('');
+  pf.ch.forEach((k,i)=>chart('wc'+i,barCfg(group(rows,CH[k][1],CH[k][2]))));
+  let T=[],tt='';
+  const row=d=>({customer:d.id,contract:d.contract,internet:d.internet,tenure:d.tenure+' mo',monthly:money(d.monthly_charges),churn_risk:pct(d.p)});
+  if(pf.tbl==='risk'){tt='Call first: top 10 high-risk customers';T=[...act].sort((a,b)=>b.p-a.p).slice(0,10).map(row)}
+  else if(pf.tbl==='upsell'){tt='Upsell targets: long-staying month-to-month customers';T=[...up].sort((a,b)=>b.monthly_charges-a.monthly_charges).slice(0,10).map(row)}
+  else if(pf.tbl==='seg'){tt='Segments to act on';T=top.map(r=>({segment:r.seg,customers:r.n,churn_rate:pct(r.rate),revenue_at_risk:money(r.rev)+'/mo'}))}
+  $('#wTT').textContent=tt;$('#wTT').parentElement.classList.toggle('hide',pf.tbl==='none');
+  $('#wTB').innerHTML=T.length?tbl(T):'<div class="note">Nothing to show for the current data.</div>';
+}
+$('#viewAs').onchange=()=>{VIEW=$('#viewAs').value||null;applyProfile();showPage('W')};
+$('#nW').onclick=()=>showPage('W');
+// ---------- home / login routing and demo accounts (stored in this browser) ----------
+const ADMIN_EMAIL="jahanvigoswami413@gmail.com"; // admin email
+const ADMIN_PASSWORD="admin123"; // demo admin password: CHANGE THIS before sharing
+function saveBlob(name,data){const blob=data instanceof Blob?data:new Blob([data],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+let authed=false,SESSION=null,SCOPE=null,LM='in',UU=[];
+const inScope=d=>!SCOPE||d[SCOPE.dim]===SCOPE.val;
+function lockScope(){if(!SCOPE||!['contract','internet'].includes(SCOPE.dim))return;document.querySelectorAll(`input[data-k=${SCOPE.dim}]`).forEach(i=>{i.checked=i.value===SCOPE.val;i.disabled=true})}
+const LS={get(){try{return JSON.parse(localStorage.getItem('riq_users')||'[]')}catch(e){return[]}},set(v){try{localStorage.setItem('riq_users',JSON.stringify(v))}catch(e){}}};
+async function hashPw(pw,salt){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+':'+pw));return[...new Uint8Array(d)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function go(v){
+  if(v==="app"&&!authed)v="login";
+  ["home","login"].forEach(x=>$("#"+x).classList.toggle("hide",x!==v));
+  $("#app").classList.toggle("hide",v!=="app");
+  $("#hSign").textContent=authed?"Open dashboard":"Sign in";
+  if(v==="app"){render();showSession()}
+  window.scrollTo(0,0);
+}
+function showSession(){$('#usr').textContent=SESSION?`${SESSION.name} \u00b7 ${SESSION.position||SESSION.role}${SCOPE?' \u00b7 '+SCOPE.val:''}`:''}
+function msg(t,ok){const e=$('#le');e.style.color=ok?'var(--gn)':'';e.textContent=t}
+async function getMe(){
+  if(typeof claude==="undefined"||!claude.use)throw"Admin sign-in needs the page opened from its claude.ai link while you are signed in to claude.ai.";
+  const u=await claude.use("user");
+  if(!u)throw"Your claude.ai account could not be reached. Reload the page while signed in to claude.ai.";
+  const owner=await u.isOwner();let m={};try{m=await u.me()}catch(e){}
+  return{isOwner:owner,name:m.name||""};
+}
+function setMode(m){
+  LM=m;$('#rq').classList.toggle('hide',m!=='up');
+  $('#lpw').autocomplete=m==='up'?'new-password':'current-password';
+  $('#lBtn').textContent=m==='up'?'Create account':'Sign in';
+  $('#lMode').textContent=m==='up'?'Already have an account? Sign in':'New here? Create an account';
+  $('#lt').textContent=m==='up'?'Create an account':'Sign in to your workspace';msg('');
+}
+async function signIn(){
+  msg('');
+  const em=$('#lm').value.trim().toLowerCase(),pw=$('#lpw').value;
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){msg('Enter a valid email address.');return}
+  if(em===ADMIN_EMAIL){
+    if(LM==='up'){msg('This email is reserved for the admin. Use Sign in.');return}
+    if(pw!==ADMIN_PASSWORD){msg('Wrong admin password.');return}
+    startSession({role:'Admin',position:'Admin',scope:null,name:'Admin',uid:'admin',email:em});return;
+  }
+  if(pw.length<6){msg('Password must be at least 6 characters.');return}
+  const users=LS.get(),u=users.find(x=>x.email===em);
+  if(LM==='up'){
+    const fullName=$('#rn').value.trim();
+    if(!fullName){msg('Enter your full name.');return}
+    if(u){msg('An account with this email already exists. Sign in instead.');return}
+    const salt=Math.random().toString(36).slice(2,10);
+    users.push({uid:'u'+Date.now().toString(36)+salt.slice(0,3),email:em,salt,pw:await hashPw(pw,salt),fullName,position:$('#rp').value,domain:$('#rd').value.trim(),note:$('#rtn').value.trim(),status:'pending',role:'',scopeDim:'',scopeVal:'',at:new Date().toISOString()});
+    LS.set(users);setMode('in');msg('Account created. Waiting for admin approval. Sign in here once the admin accepts your request.',true);return;
+  }
+  if(!u||u.pw!==await hashPw(pw,u.salt)){msg('Wrong email or password.');return}
+  if(u.status==='approved'){startSession({role:u.role,position:u.position,scope:u.scopeDim?{dim:u.scopeDim,val:u.scopeVal}:null,name:u.fullName,uid:u.uid,email:em});return}
+  msg(u.status==='pending'?'Waiting for admin approval. Please try again later.':u.status==='rejected'?'Your request was declined by the admin.':'Your access was revoked by the admin.',u.status==='pending');
+}
+function startSession(s){
+  SESSION=s;authed=true;SCOPE=s.scope;
+  try{alasql.tables.customers.data=SCOPE?DATA.filter(inScope):DATA}catch(e){}
+  buildFilters();VIEW=null;applyProfile();showPage('W');
+  if(s.role==='Admin')loadUsers();
+  go('app');
+}
+// ----- admin: approvals -----
+function loadUsers(){UU=LS.get();renderUsers()}
+const POS={'General Manager (GM)':'Manager','Senior Manager':'Manager','Manager':'Manager','Sales Manager':'Manager','Marketing Manager':'Manager','Customer Support Head':'Manager','Executive / CEO':'Manager','Team Lead':'Analyst','Analyst':'Analyst','Other':'Viewer'};
+const valOpts=dim=>dim==='contract'?MODEL.cons:dim==='internet'?MODEL.ints:[];
+const opt=(a,cur)=>a.map(v=>`<option${v===cur?' selected':''}>${esc(v)}</option>`).join('');
+let DLG=null;
+function fillVal(cur){const d=$('#dD').value;$('#dV').innerHTML=opt(valOpts(d),cur);$('#dV').style.display=d==='all'?'none':''}
+function roleNote(){const p=PROFILES[$('#dP').value];$('#dRn').textContent=p?'Workspace: '+p.ws+'. '+p.desc:''}
+function openDlg(uid){
+  const base=UU.find(u=>u.uid===uid)||{};DLG={uid};
+  $('#dT').textContent=base.status==='pending'?'Approve access':'Edit access';
+  $('#dW').textContent=(base.fullName||'Unknown')+' \u00b7 '+(base.email||'');
+  const pos=POS[base.position]?base.position:'Other';
+  $('#dP').innerHTML=opt(Object.keys(POS),pos);
+  $('#dR').innerHTML=opt(['Manager','Analyst','Viewer'],base.role||POS[pos]);
+  $('#dD').innerHTML=[['all','All data'],['contract','Contract'],['internet','Internet service']].map(([v,l])=>`<option value="${v}"${v===(base.scopeDim||'all')?' selected':''}>${l}</option>`).join('');
+  fillVal(base.scopeVal);roleNote();$('#dlg').classList.remove('hide');
+}
+const closeDlg=()=>{$('#dlg').classList.add('hide');DLG=null};
+$('#dP').onchange=()=>{$('#dR').value=POS[$('#dP').value];roleNote()};
+$('#dR').onchange=roleNote;$('#dD').onchange=()=>fillVal();$('#dNo').onclick=closeDlg;
+function decide(uid,f){const us=LS.get(),i=us.findIndex(x=>x.uid===uid);if(i<0)return false;Object.assign(us[i],f);LS.set(us);loadUsers();return true}
+$('#dOk').onclick=()=>{
+  if(!DLG)return;const dim=$('#dD').value;
+  if(decide(DLG.uid,{status:'approved',role:$('#dR').value,position:$('#dP').value,scopeDim:dim==='all'?'':dim,scopeVal:dim==='all'?'':$('#dV').value}))closeDlg();
+};
+function renderUsers(){
+  const pend=UU.filter(u=>u.status==='pending'),past=UU.filter(u=>u.status!=='pending');
+  $('#uc').textContent=pend.length?`(${pend.length})`:'';
+  $('#uq').innerHTML=pend.length?pend.map(r=>`<div class="ur" data-uid="${esc(r.uid)}"><div><b>${esc(r.fullName)}</b> \u00b7 ${esc(r.position)}<div class="note" style="margin:2px 0">${esc(r.email)} \u00b7 works in: ${esc(r.domain||'-')}${r.note?' \u00b7 '+esc(r.note):''}</div></div><div class="row" style="margin:0"><button class="btn p" data-a="review">Review &amp; approve</button><button class="btn" data-a="rejected" style="width:auto;margin:0">Reject</button></div></div>`).join(''):'<div class="note">No pending requests.</div>';
+  $('#ug').innerHTML=past.length?'<table><tr><th>Person</th><th>Position</th><th>Status</th><th>Data domain</th><th></th></tr>'+past.map(g=>`<tr data-uid="${esc(g.uid)}"><td>${esc(g.fullName)}<div class="note" style="margin:0">${esc(g.email)}</div></td><td>${esc(g.position)}</td><td><span class="bd ${g.status==='approved'?'Low':'High'}">${esc(g.status)}</span></td><td>${g.scopeDim?esc(g.scopeDim+': '+g.scopeVal):'All data'}</td><td><button class="btn p" data-a="review">Edit access</button> <button class="btn" data-a="revoked" style="width:auto;margin:0">Revoke</button></td></tr>`).join('')+'</table>':'<div class="note">No decisions yet.</div>';
+}
+$('#pU').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-a]');if(!b)return;
+  const uid=b.closest('[data-uid]').dataset.uid,a=b.dataset.a;
+  if(a==='review'){openDlg(uid);return}
+  decide(uid,{status:a});
+});
+$("#nU").onclick=()=>{loadUsers();showPage("U")};
+$("#hSign").onclick=$("#hStart").onclick=()=>go("app");
+$("#lBtn").onclick=signIn;
+$("#lm").onkeydown=$("#lpw").onkeydown=e=>{if(e.key==="Enter")signIn()};
+$("#lMode").onclick=()=>setMode(LM==='in'?'up':'in');
+$("#lBack").onclick=$("#toHome").onclick=()=>go("home");
+$("#out").onclick=()=>{authed=false;SESSION=null;SCOPE=null;VIEW=null;$('#usr').textContent='';try{alasql.tables.customers.data=DATA}catch(e){}buildFilters();go("home")};
+load(sample(3000),"Sample data: 3,000 synthetic customers. CSV columns: customerID, gender, tenure, Contract, InternetService, MonthlyCharges, TotalCharges, Churn.");
+</script>
+</body>
+</html>
